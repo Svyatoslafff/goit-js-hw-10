@@ -18,7 +18,7 @@ function convertMs(ms) {
     return { days, hours, minutes, seconds };
 };
 
-function normalizeDate(date) {
+function normalizeTimerDate(date) {
     date = `${date}`;
     if (date.length < 2) {
         return `0${date}`;
@@ -35,7 +35,6 @@ const options = {
     defaultDate: new Date(),
     minuteIncrement: 1,
     onClose(selectedDates) {
-        chosenDate = selectedDates[0].getTime(); 
         calendar.verifyDate(selectedDates[0]);
     },
 };
@@ -48,11 +47,16 @@ const calendar = {
     dateInput: document.querySelector('#datetime-picker'),
     button: document.querySelector('.calendar-container button[data-start]'),
     verifyDate(date) {
-        if (date.getTime() > Date.now()) {
+        if (date.getTime() > Date.now() && timer.seconds.textContent == 0) {
             calendar.button.dataset.start = 'active';
+            chosenDate = date.getTime(); 
         } else {
-            this.alert();  
             calendar.button.dataset.start = 'inactive';
+            if (timer.seconds.textContent == 0) {
+                calendar.invalidDateAlert(); 
+            } else {
+                calendar.timerIsRunningAlert();
+            }
         }
     },
     invalidDateAlert() {
@@ -65,6 +69,16 @@ const calendar = {
             timeout: 5000,
         })
     },
+    timerIsRunningAlert() {
+        iziToast.warning({
+            title: 'Timer is running',
+            message: 'Please wait until timer ends',
+            position: 'topRight',
+            color: 'red',
+            iconUrl: './img/close-outlined.svg',
+            timeout: 5000,
+        })
+    }
 }
 
 const timer = {
@@ -73,18 +87,13 @@ const timer = {
     minutes: document.querySelector('.timer span[data-minutes]'),
     seconds: document.querySelector('.timer span[data-seconds]'),
     setTimer() {
-        if (calendar.button.dataset.start === 'active') {
+        if (calendar.button.dataset.start === 'active') { 
+            calendar.button.dataset.start = 'inactive';
+
             let initialDate = Date.now();
+            initialDate = timer.setTimerDate(initialDate);
+            
             const intervalId = setInterval(() => {
-                let { days, hours, minutes, seconds } = convertMs(chosenDate - initialDate);
-
-                timer.days.textContent = normalizeDate(days);
-                timer.hours.textContent = normalizeDate(hours);
-                timer.minutes.textContent = normalizeDate(minutes);
-                timer.seconds.textContent = normalizeDate(seconds);
-
-                initialDate += 1000;
-
                 if (!(chosenDate - initialDate >= 0)) {
                     clearInterval(intervalId);
                     iziToast.success({
@@ -93,12 +102,30 @@ const timer = {
                         position: 'topRight',
                         timeout: 5000,
                     })
+                } else {
+                    initialDate = timer.setTimerDate(initialDate);
                 }
             }, 1000)
         } else {
-            calendar.invalidDateAlert();
+            if (timer.seconds.textContent == 0) {
+                calendar.invalidDateAlert(); 
+
+            } else {
+                calendar.timerIsRunningAlert();
+
+            }
         }
     },
+    setTimerDate(initialDate) {
+        let { days, hours, minutes, seconds } = convertMs(chosenDate - initialDate);
+
+        timer.days.textContent = normalizeTimerDate(days);
+        timer.hours.textContent = normalizeTimerDate(hours);
+        timer.minutes.textContent = normalizeTimerDate(minutes);
+        timer.seconds.textContent = normalizeTimerDate(seconds);
+
+        return initialDate += 1000;
+    }
 }
 
 flatpickr('#datetime-picker', options);

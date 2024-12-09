@@ -65,7 +65,7 @@ const calendar = {
             message: 'Please choose a date in the future',
             position: 'topRight',
             color: 'red',
-            iconUrl: './img/close-outlined.svg',
+            iconUrl: 'https://www.svgrepo.com/show/418578/close-outlined-cross-2.svg',
             timeout: 5000,
         })
     },
@@ -75,7 +75,7 @@ const calendar = {
             message: 'Please wait until timer ends',
             position: 'topRight',
             color: 'red',
-            iconUrl: './img/close-outlined.svg',
+            iconUrl: 'https://www.svgrepo.com/show/418578/close-outlined-cross-2.svg',
             timeout: 5000,
         })
     }
